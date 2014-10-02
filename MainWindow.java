@@ -22,13 +22,18 @@ import javax.swing.AbstractListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.LineBorder;
 
+import com.googlecode.javacv.VideoInputFrameGrabber;
+import javax.swing.SwingConstants;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+
 
 public class MainWindow {
 
 	private JFrame frmImageProcessing;
 	String[] suffices = ImageIO.getReaderFileSuffixes();
 	public static JTextField blankTextField;
-	public  static JTextField notBlankTextField;
+	public static JTextField notBlankTextField;
 	public static JTextArea textArea;
 	public static JSpinner intervalTextField;
 	public static JCheckBox chckbxEdgedetection;
@@ -37,6 +42,9 @@ public class MainWindow {
 	public static boolean runThreads;
 	public static JList<String> algoList;
 	public static String[] algorithms;
+	public static JList<String> camList;
+	public static JButton btnStart;
+	public static JLabel imgLabel;
 
 	/**
 	 * Launch the application.
@@ -82,23 +90,26 @@ public class MainWindow {
 		    @Override
 		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
 		    	runThreads = false;
-		    	System.exit(0);
+		    	//System.exit(0);
 		    }
 		});
 		
-		final JButton btnCaptureImageFrom = new JButton("START");
-		btnCaptureImageFrom.setToolTipText("");
-		btnCaptureImageFrom.addActionListener(new ActionListener() {
+		frmImageProcessing.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		
+		btnStart = new JButton("START");
+		btnStart.setToolTipText("");
+		btnStart.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent args0) {
-				btnCaptureImageFrom.setText("Running...");
-				btnCaptureImageFrom.setEnabled(false);
+				btnStart.setText("Running...");
+				btnStart.setEnabled(false);
+				intervalTextField.setEnabled(false);
 				GrabImage g = new GrabImage(); 
 				Thread t = new Thread(g); 
 				t.start();
 			}
 		});
-		btnCaptureImageFrom.setBounds(27, 21, 200, 105);
-		frmImageProcessing.getContentPane().add(btnCaptureImageFrom);
+		btnStart.setBounds(27, 21, 200, 105);
+		frmImageProcessing.getContentPane().add(btnStart);
 		
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setBounds(27, 347, 580, 153);
@@ -126,7 +137,7 @@ public class MainWindow {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fc = new JFileChooser();
 				fc.setCurrentDirectory(new File("."));
-				int ret = fc.showDialog(frmImageProcessing,"Ok");
+				int ret = fc.showDialog(frmImageProcessing,"Choose a script file");
 				if (ret == JFileChooser.APPROVE_OPTION){
 					blankTextField.setText(fc.getSelectedFile().toString());
 				}
@@ -142,7 +153,7 @@ public class MainWindow {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fc = new JFileChooser();
 				fc.setCurrentDirectory(new File("."));
-				int ret = fc.showDialog(frmImageProcessing,"Ok");
+				int ret = fc.showDialog(frmImageProcessing,"Choose a script file");
 				if (ret == JFileChooser.APPROVE_OPTION){
 					notBlankTextField.setText(fc.getSelectedFile().toString());
 				}
@@ -165,8 +176,8 @@ public class MainWindow {
 		notBlankTextField.setBounds(209, 288, 398, 23);
 		frmImageProcessing.getContentPane().add(notBlankTextField);
 		
-		JLabel lblScriptOptions = new JLabel("Script options (set this before starting camera)");
-		lblScriptOptions.setBounds(186, 226, 261, 14);
+		JLabel lblScriptOptions = new JLabel("Script options (set this before starting the camera)");
+		lblScriptOptions.setBounds(157, 226, 320, 14);
 		frmImageProcessing.getContentPane().add(lblScriptOptions);
 		
 		JSeparator separator = new JSeparator();
@@ -193,6 +204,16 @@ public class MainWindow {
 		chckbxShowMonitor = new JCheckBox("Show Monitor Window");
 		chckbxShowMonitor.setSelected(true);
 		chckbxShowMonitor.setBounds(268, 21, 160, 23);
+		chckbxShowMonitor.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(!chckbxShowMonitor.isSelected()){
+					chckbxEdgedetection.setEnabled(false);
+					//chckbxEdgedetection.setSelected(false);
+				}
+				else
+					chckbxEdgedetection.setEnabled(true);
+			}
+			});
 		frmImageProcessing.getContentPane().add(chckbxShowMonitor);
 		
 		chckbxPerformTests = new JCheckBox("Perform tests");
@@ -214,32 +235,48 @@ public class MainWindow {
 			}
 		});
 		algoList.setSelectedIndex(0);
-		algoList.setBounds(268, 101, 170, 88);
+		algoList.setBounds(449, 50, 170, 139);
 		frmImageProcessing.getContentPane().add(algoList);
 		
-		JList list = new JList();
-		list.setBorder(new LineBorder(new Color(0, 0, 0)));
-		list.setModel(new AbstractListModel() {
-			String[] values = new String[] {};
+		
+		camList = new JList<String>();
+		camList.setBorder(new LineBorder(new Color(0, 0, 0)));
+		camList.setVisibleRowCount(3);
+		
+		
+		try{
+			camList.setModel(new AbstractListModel<String>() {
+			String[] values = VideoInputFrameGrabber.getDeviceDescriptions();
 			public int getSize() {
 				return values.length;
 			}
-			public Object getElementAt(int index) {
+			public String getElementAt(int index) {
 				return values[index];
 			}
-		});
-		list.setVisibleRowCount(5);
-		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		list.setBounds(463, 48, 144, 141);
-		frmImageProcessing.getContentPane().add(list);
+			});
+			camList.setSelectedIndex(0);
+		}
+		
+		catch(Exception ex){}
+		
+		
+		camList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		camList.setBounds(268, 101, 144, 88);
+		frmImageProcessing.getContentPane().add(camList);
 		
 		JLabel lblWebcamsDetected = new JLabel("Cameras detected:");
-		lblWebcamsDetected.setBounds(460, 25, 147, 14);
+		lblWebcamsDetected.setBounds(268, 76, 147, 14);
 		frmImageProcessing.getContentPane().add(lblWebcamsDetected);
 		
 		JLabel lblNewLabel = new JLabel("Algorithms:");
-		lblNewLabel.setBounds(265, 76, 173, 14);
+		lblNewLabel.setBounds(454, 25, 153, 14);
 		frmImageProcessing.getContentPane().add(lblNewLabel);
+		
+		imgLabel = new JLabel("");
+		imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		imgLabel.setIcon(null);
+		imgLabel.setBounds(25, 350, 225, 160);
+		frmImageProcessing.getContentPane().add(imgLabel);
 						
 	}
 }
