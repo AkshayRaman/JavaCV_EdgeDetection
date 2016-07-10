@@ -1,4 +1,4 @@
-EdgeDetection using JavaCV
+Edge Detection using JavaCV
 ====================
 
 Implements the following edge detection algorithms:<br>
