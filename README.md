@@ -17,3 +17,8 @@ This has been built and tested on OpenCV 3.1.0
 3. Download the JavaCV jar files. Refer: https://github.com/bytedeco/javacv#downloads
 
 4. Add the JavaCV jar files to the build path on your IDE (I used eclipse)
+
+=======================
+
+Screenshot:<br>
+<img src="https://raw.githubusercontent.com/AkshayRaman/JavaCV_EdgeDetection/master/screenshots/screenshot1.PNG"/>
