@@ -7,7 +7,7 @@ Implements the following edge detection algorithms:<br>
   Sobel Edge Detection<br>
 
 Instructions to build the code:
-NOTE: For a 32-bit system, make sure you use 32-bit Java and 32-bit OpenCV and 32-bit JavaCV ONLY.
+<br>NOTE: For a 32-bit system, make sure you use 32-bit Java and 32-bit OpenCV and 32-bit JavaCV ONLY.
 
 1. Download OpenCV from https://sourceforge.net/projects/opencvlibrary/files/opencv-win/3.1.0/opencv-3.1.0.exe/download
 This has been built and tested on OpenCV 3.1.0
