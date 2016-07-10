@@ -1,7 +1,10 @@
 JavaCV_EdgeDetection
 ====================
 
-Implements some basic edge detection algorithms
+Implements the following edge detection algorithms:<br>
+  Canny Edge Detection<br>
+  Laplacian Edge Detection<br>
+  Sobel Edge Detection<br>
 
 Instructions to build the code:
 For a 32-bit system, make sure you use 32-bit Java and 32-bit OpenCV and 32-bit JavaCV ONLY.(https://code.google.com/p/javacv/source/browse/README.txt#24)
