@@ -1,177 +1,151 @@
-import static com.googlecode.javacv.cpp.opencv_core.cvCreateImage;
-import static com.googlecode.javacv.cpp.opencv_core.cvGetSize;
-import static com.googlecode.javacv.cpp.opencv_imgproc.CV_BGR2GRAY;
-import static com.googlecode.javacv.cpp.opencv_imgproc.CV_GAUSSIAN;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvCanny;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvCvtColor;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvLaplace;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvSmooth;
-import static com.googlecode.javacv.cpp.opencv_imgproc.cvSobel;
+import static org.bytedeco.javacpp.opencv_core.cvCreateImage;
+import static org.bytedeco.javacpp.opencv_core.cvGetSize;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_BGR2GRAY;
+import static org.bytedeco.javacpp.opencv_imgproc.CV_GAUSSIAN;
+import static org.bytedeco.javacpp.opencv_imgproc.cvCanny;
+import static org.bytedeco.javacpp.opencv_imgproc.cvCvtColor;
+import static org.bytedeco.javacpp.opencv_imgproc.cvLaplace;
+import static org.bytedeco.javacpp.opencv_imgproc.cvSmooth;
+import static org.bytedeco.javacpp.opencv_imgproc.cvSobel;
 
 import java.awt.Dimension;
-import java.awt.Image;
 
-import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
-import com.googlecode.javacv.CanvasFrame;
-import com.googlecode.javacv.FrameGrabber;
-import com.googlecode.javacv.OpenCVFrameGrabber;
-import com.googlecode.javacv.VideoInputFrameGrabber;
-import com.googlecode.javacv.cpp.opencv_core.IplImage;
+import org.bytedeco.javacpp.opencv_core.IplImage;
+import org.bytedeco.javacv.CanvasFrame;
+import org.bytedeco.javacv.FrameGrabber;
+import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.javacv.OpenCVFrameGrabber;
+import org.bytedeco.javacv.VideoInputFrameGrabber;
 
 public class GrabImage implements Runnable {
-    IplImage image;
-    CanvasFrame canvas1;
-    static int SELECTED_DEVICE_NUMBER;
-    static String DEVICE_DESCRIPTION;
+	IplImage image;
+	CanvasFrame canvas1;
+	static int SELECTED_DEVICE_NUMBER;
+	static String DEVICE_DESCRIPTION;
 
-   public GrabImage(){
-    	
-    	SELECTED_DEVICE_NUMBER = MainWindow.camList.getSelectedIndex();
-    	    	
-    	if(SELECTED_DEVICE_NUMBER<0)
-    	{
-    		System.out.println("ERROR:No cameras found!\nProgram will exit!");
-    		JOptionPane.showMessageDialog(null, "No cameras found!\nProgram will exit!", "Error", JOptionPane.ERROR_MESSAGE);
-    		System.exit(0);
-    	}
-    	
-    	canvas1 = new CanvasFrame("");
-    	canvas1.setDefaultCloseOperation(javax.swing.JFrame.DISPOSE_ON_CLOSE);
-        canvas1.setMaximumSize(new Dimension(500, 500));
-    }
-   
-   public ImageIcon createIcon(IplImage x)
-   {
-	   ImageIcon mwIcon = new ImageIcon(x.getBufferedImage());
-   	   Image t = mwIcon.getImage().getScaledInstance(MainWindow.imgLabel.getWidth(), MainWindow.imgLabel.getHeight(),  java.awt.Image.SCALE_SMOOTH);
-   	   mwIcon = new ImageIcon(t);
-   	   return mwIcon;
-   	
-   }
+	public GrabImage() {
 
-    @
-    Override
-    public void run() {
+		canvas1 = new CanvasFrame("");
+		SELECTED_DEVICE_NUMBER = MainWindow.camList.getSelectedIndex();
 
-        IplImage img = new IplImage();
-        FrameGrabber grabber = new OpenCVFrameGrabber(SELECTED_DEVICE_NUMBER);
-        grabber.setImageHeight(320);
-        grabber.setImageWidth(480);
-        
-        try {
-            grabber.start();
-            DEVICE_DESCRIPTION = VideoInputFrameGrabber.getDeviceDescriptions()[SELECTED_DEVICE_NUMBER];
-            
-            while(MainWindow.runThreads) {
-                img = grabber.grab();
-                if (img != null) {
-                	
-                	//Show Monitor               	
-                    if (MainWindow.chckbxShowMonitor.isSelected()) {
-                        canvas1.setVisible(true);
-                    	
-                    	//Delete the below line
-                        //MainWindow.imgLabel.setIcon(createIcon(img));
+		if (SELECTED_DEVICE_NUMBER < 0) {
+			System.out.println("ERROR:No cameras found!\nProgram will exit!");
+			JOptionPane.showMessageDialog(null, "No cameras found!\nProgram will exit!", "Error",
+					JOptionPane.ERROR_MESSAGE);
+			System.exit(0);
+		}
 
-                        if (MainWindow.chckbxEdgedetection.isSelected()) {
-                        	
-                        	IplImage grayImage = cvCreateImage(cvGetSize(img), img.depth(), 1);
-                        	IplImage canny = cvCreateImage(cvGetSize(img), img.depth(), 1);
-                        	                        	                       	
-                        	String choice = MainWindow.algoList.getSelectedValue();
-                        	canvas1.setTitle(DEVICE_DESCRIPTION+" - "+choice);
-                        	
-                        	switch(choice){
-                        	
-                        	case "Canny Edge Detection":{
-                        		//Canny Edge Detection
-                        		cvCvtColor(img, grayImage, CV_BGR2GRAY);   
-                        		cvSmooth(grayImage,grayImage,CV_GAUSSIAN, 7, 7, 0, 0);
-                        		cvCanny(grayImage, canny, 10, 300, 5);
-                        		canvas1.showImage(canny);
-                        		//MainWindow.imgLabel.setIcon(createIcon(canny));
-                        		break;
-                        	}
-                        	
-                        	case "Laplacian Edge Detection":{
-                        		//Laplacian Edge Detection
-                        		IplImage temp = new IplImage(img);
-                        		cvLaplace(temp, temp, 1);
-                        		canvas1.showImage(temp);
-                        		//MainWindow.imgLabel.setIcon(createIcon(temp));
-                        		break;
-                        	}
-                        		
-                        	case "Sobel Edge Detection":{
-                        		//Sobel Edge Detection
-                        		IplImage temp = new IplImage(img);
-                            	cvSobel(temp, temp, 1, 1, 1);
-                            	canvas1.showImage(temp);
-                            	//MainWindow.imgLabel.setIcon(createIcon(temp));
-                            	break;
-                        		}
-                        	}
+		canvas1.setDefaultCloseOperation(javax.swing.JFrame.DISPOSE_ON_CLOSE);
+		canvas1.setMaximumSize(new Dimension(500, 500));
+		// canvas1.setVisible(false);
+	}
 
-                        	//canvas1.setTitle(DEVICE_DESCRIPTION+" - "+choice);
-                        } 
-                        
-                        else {
-                            canvas1.showImage(img);
-                            canvas1.setTitle(DEVICE_DESCRIPTION+" - Webcam capture");
-                        	//MainWindow.imgLabel.setIcon(createIcon(img));
-                        }
-                    } 
-                    
-                    else{
-                        canvas1.setVisible(false);
-                    }
-                    
-                  //Perform tests
-                	if(MainWindow.chckbxPerformTests.isSelected()){
-                    	
-                    	/* To save and delete the image*/
-        				//final String grabbedImage = System.currentTimeMillis()+".jpg";
-        				//cvSaveImage(grabbedImage , img);
-        				//final BlankImageDetect b = new BlankImageDetect(img,MainWindow.chckbxEnableDetailedOutput.isSelected());
-                    	
-                    	IplImage grayImage = cvCreateImage(cvGetSize(img), img.depth(), 1);
-                    	IplImage canny = cvCreateImage(cvGetSize(img), img.depth(), 1);
-                    	cvCvtColor(img, grayImage, CV_BGR2GRAY);   
-                		cvSmooth(grayImage,grayImage,CV_GAUSSIAN, 7, 7, 0, 0);
-                		cvCanny(grayImage, canny, 10, 300, 5);
-                    	
-                		final WhitePixelCounter b = new WhitePixelCounter(canny, true);
-        				
-        				new Thread(new Runnable(){
-        				public void run(){
-        					MainWindow.textArea.append(b.showPixelColors());
-        					MainWindow.textArea.setCaretPosition(MainWindow.textArea.getDocument().getLength());
-        					ProcessRunner.runProcess(b.isBlank? MainWindow.blankTextField.getText():MainWindow.notBlankTextField.getText());
-        					//delete(grabbedImage);
-        					}
-        				}).start();
-        				
-            			MainWindow.textArea.setCaretPosition(MainWindow.textArea.getDocument().getLength());
-                    	
-                    }
-                }
+	@Override
+	public void run() {
 
-                long sleepTime = Long.parseLong(MainWindow.intervalTextField.getValue().toString());
-                //System.out.println("Sleeping for "+sleepTime+" ms");
-                Thread.sleep(sleepTime);
-            }
+		IplImage img = new IplImage();
+		FrameGrabber grabber = new OpenCVFrameGrabber(SELECTED_DEVICE_NUMBER);
+		grabber.setImageHeight(320);
+		grabber.setImageWidth(480);
+		OpenCVFrameConverter.ToIplImage grabberConverter = new OpenCVFrameConverter.ToIplImage();
 
-            grabber.stop();
-            canvas1.dispose();
-            System.gc();
-            System.out.println("Done. Exit.");
-            System.exit(0);
-            
-        } catch (Exception e) {
-        	System.out.println("ERROR: GrabImage "+e.getMessage());
-        	e.printStackTrace();
-        }
-    }
+		try {
+			grabber.start();
+			DEVICE_DESCRIPTION = VideoInputFrameGrabber.getDeviceDescriptions()[SELECTED_DEVICE_NUMBER];
+
+			while (MainWindow.runThreads) {
+				img = grabberConverter.convert(grabber.grab());
+				if (img != null) {
+
+					/*
+					 * BufferedImage bi = img.getBufferedImage();
+					 * ByteArrayOutputStream out = new ByteArrayOutputStream();
+					 * ImageIO.write(bi, "PNG", out); byte[] bytes =
+					 * out.toByteArray();
+					 * 
+					 * String base64bytes = Base64.encode(bytes); String src =
+					 * "data:image/png;base64," + base64bytes;
+					 * System.out.println(src);
+					 */
+
+					if (MainWindow.chckbxShowMonitor.isSelected()) {
+						canvas1.setVisible(true);
+
+						if (MainWindow.chckbxEdgedetection.isSelected()) {
+							IplImage grayImage = cvCreateImage(cvGetSize(img), img.depth(), 1);
+							IplImage canny = cvCreateImage(cvGetSize(img), img.depth(), 1);
+
+							String choice = MainWindow.algoList.getSelectedValue();
+
+							switch (choice) {
+
+							case "Canny Edge Detection": {
+								// Canny Edge Detection
+								cvCvtColor(img, grayImage, CV_BGR2GRAY);
+								cvSmooth(grayImage, grayImage, CV_GAUSSIAN, 7, 7, 0, 0);
+								cvCanny(grayImage, canny, 10, 300, 5);
+								canvas1.showImage(grabberConverter.convert(canny));
+								break;
+							}
+
+							case "Laplacian Edge Detection": {
+								// Laplacian Edge Detection
+								IplImage temp = new IplImage(img);
+								cvLaplace(temp, temp, 3);
+								canvas1.showImage(grabberConverter.convert(temp));
+								break;
+							}
+
+							case "Sobel Edge Detection": {
+								// Sobel Edge Detection
+								IplImage temp = new IplImage(img);
+								cvSobel(temp, temp, 1, 0, 3);
+								canvas1.showImage(grabberConverter.convert(temp));
+								break;
+							}
+							}
+
+							canvas1.setTitle(DEVICE_DESCRIPTION + " - " + choice);
+						}
+
+						else {
+							canvas1.showImage(grabberConverter.convert(img));
+							canvas1.setTitle(DEVICE_DESCRIPTION + " - Webcam capture");
+						}
+					}
+
+					else {
+						canvas1.setVisible(false);
+					}
+
+					if (MainWindow.chckbxPerformTests.isSelected()) {
+
+						/* Edge counting algorithm here */
+
+						MainWindow.textArea.setCaretPosition(MainWindow.textArea.getDocument().getLength());
+
+					}
+
+				}
+
+				long sleepTime = Long.parseLong(MainWindow.intervalTextField.getValue().toString());
+				// System.out.println("Sleeping for "+sleepTime+" ms");
+				Thread.sleep(sleepTime);
+			}
+
+			grabber.stop();
+			System.out.println("Done. Exit.");
+			System.exit(0);
+
+		} catch (Exception e) {
+			System.out.println("ERROR: GrabImage " + e.getMessage());
+			e.printStackTrace();
+		} finally {
+			canvas1.dispose();
+			img.close();
+			System.gc();
+		}
+	}
 }
